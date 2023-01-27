@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .tooltip {
+        border: 1px solid;
+        background: red;
+        color: #fff;
+        padding: 20px;
+      }
+    </style>
+    <script src="../d3/d3.js"></script>
+  </head>
+  <body>
+    <div class="container"></div>
+    <div id="chart"></div>
+    <script>
+      // 1. 准备数据
+      var data = [
+        { label: "A", value: 50 },
+        { label: "B", value: 40 },
+        { label: "C", value: 30 },
+        { label: "D", value: 20 },
+        { label: "E", value: 10 },
+      ];
+
+      // 2. 创建 SVG 元素
+      var svg = d3
+        .select("#chart")
+        .append("svg")
+        .attr("width", 600)
+        .attr("height", 420);
+
+      // 3. 创建坐标系
+      var xScale = d3
+        .scaleBand()
+        .domain(
+          data.map(function (d) {
+            return d.label;
+          })
+        )
+        .range([0, 600])
+        .padding(0.2);
+
+      var yScale = d3
+        .scaleLinear()
+        .domain([
+          0,
+          d3.max(data, function (d) {
+            return d.value;
+          }),
+        ])
+        .range([400, 0]);
+
+      // 4. 创建坐标轴
+      var xAxis = d3.axisBottom(xScale);
+      var yAxis = d3.axisLeft(yScale);
+
+      // 5. 绘制柱形图
+      var bars = svg
+        .selectAll("rect")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("x", function (d) {
+          return xScale(d.label);
+        })
+        .attr("y", function (d) {
+          return yScale(d.value);
+        })
+        .attr("width", xScale.bandwidth())
+        .attr("height", function (d) {
+          return 400 - yScale(d.value);
+        })
+        .attr("fill", "blue");
+
+      // 6. 绘制坐标轴
+      svg.append("g").attr("transform", "translate(0, 400)").call(xAxis);
+      svg.append("g").attr("transform", "translate(20, 0)").call(yAxis);
+
+      // 7. 为坐标轴添加标签
+      svg
+        .append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "translate(" + -50 + "," + 200 + ")rotate(-90)")
+        .text("Value");
+
+      svg
+        .append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "translate(" + 300 + "," + 380 + ")")
+        .text("Label");
+
+      //8.添加 tooltip
+      var tooltip = d3
+        .select("#chart")
+        .append("div")
+        .attr("class", "tooltip")
+        .attr("id", "tooltip")
+        .style("opacity", 0)
+        .style("position", "absolute");
+
+      bars
+        .on("mouseover", function (_, d) {
+          tooltip.transition().duration(200).style("opacity", 1);
+          tooltip
+            .html("<strong>Value: </strong>" + d.value)
+            .style("left", _.pageX + "px")
+            .style("top", _.pageY + "px");
+        })
+        .on("mouseout", function (d) {
+          if (!d.relatedTarget || d.relatedTarget.id !== "tooltip") {
+            tooltip.style("opacity", 0);
+          }
+        });
+    </script>
+  </body>
+</html>
